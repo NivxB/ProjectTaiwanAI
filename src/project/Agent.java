@@ -72,18 +72,21 @@ public class Agent extends Thread {
         int CompensateValue = OtherAgent.LastCompensation;
 
         if ((matrix[I][J] + CompensateValue) >= (GoalNum - LastCompensation)) {
-            LOG_OUTPUT.append("Agent " + id + " accepts compensation of Agent " + OtherAgent.id + " \n");
-            LOG_OUTPUT.append("\tCompensation of " + LastCompensation+"\n");
-
+            
             Goal[0] = OtherAgent.Goal[0];
             Goal[1] = OtherAgent.Goal[1];
-            GoalNum = matrix[Goal[0]][Goal[1]];
-
             LastCompensation = 0;
+
+            GoalNum = matrix[Goal[0]][Goal[1]];
+            
+            LOG_OUTPUT.append("Agent " + id + " accepts compensation of Agent " + OtherAgent.id + " in quadrant ["+Goal[0]+"]["+Goal[1]+"] \n ");
+            LOG_OUTPUT.append("\tCompensation of " + LastCompensation+" \n");
+
+
 
             return false;
         } else {
-            LOG_OUTPUT.append("Agent " + id + " rejects compensation of Agent " + OtherAgent.id + " \n");
+            LOG_OUTPUT.append("Agent " + id + " rejects compensation of Agent " + OtherAgent.id + " in quadrant ["+Goal[0]+"]["+Goal[1]+"] \n");
             LOG_OUTPUT.append("\tCompensation of " + LastCompensation+"\n");
 
             return true;
@@ -166,6 +169,8 @@ public class Agent extends Thread {
 
     @Override
     public void run() {
+        LOG_OUTPUT.append("Agent " +id +": chooses quadrant ["+Goal[0]+"]["+Goal[1]+"] \n");
+        
         while (isAlive) {
             if (isRunning) {
                 try {
@@ -193,11 +198,11 @@ public class Agent extends Thread {
                         }
 
                         if (id == 0) {
-                            LOG_OUTPUT.append("Compensation made by Agent " + id + " is " + LastCompensation + "\n");
-                            LOG_OUTPUT.append("Compensation made by Agent " + OtherAgent.id + " is " + LastCompensation + "\n");
+                            LOG_OUTPUT.append("Compensation made by Agent " + (id==0?"P":"Q") + " is " + LastCompensation + "\n");
+                            LOG_OUTPUT.append("Compensation made by Agent " + (OtherAgent.id==0?"P":"Q") + " is " + OtherAgent.LastCompensation + "\n");
                         } else {
-                            LOG_OUTPUT.append("Compensation made by Agent " + OtherAgent.id + " is " + OtherAgent.LastCompensation + "\n");
-                            LOG_OUTPUT.append("Compensation made by Agent " + id + " is " + LastCompensation + "\n");
+                            LOG_OUTPUT.append("Compensation made by Agent " + (OtherAgent.id==0?"P":"Q") + " is " + OtherAgent.LastCompensation + "\n");
+                            LOG_OUTPUT.append("Compensation made by Agent " + (id==0?"P":"Q") + " is " + LastCompensation + "\n");
 
                         }
                         LOG_OUTPUT.append("\n");
@@ -228,7 +233,23 @@ public class Agent extends Thread {
                         OtherAgent.isAlive = false;
                         OtherAgent.isRunning = false;
 
+                        LOG_OUTPUT.append("\nFinal Payoff Matrix for Agent "+(id==0?"P":"Q")+"\n");
+                        matrix[Goal[0]][Goal[1]] = GoalNum - LastCompensation + OtherAgent.LastCompensation;
+                        printMatrix(matrix,LOG_OUTPUT);
+                        LOG_OUTPUT.append("\nFinal Payoff Matrix for Agent "+(OtherAgent.id==0?"P":"Q")+"\n");
+                        OtherAgent.matrix[OtherAgent.Goal[0]][OtherAgent.Goal[1]] = OtherAgent.GoalNum - OtherAgent.LastCompensation + LastCompensation;
+                        printMatrix(OtherAgent.matrix,LOG_OUTPUT);
+                        
                         System.out.println(LOG);
+                        LOG_OUTPUT.append("\nGuarantee of "+(id==0?"P":"Q")+"\n");
+                        LOG="";
+                        printMatrix(guaranteeMatrix, LOG_OUTPUT);
+                        LOG_OUTPUT.append(LOG + " \n"); 
+                        
+                        LOG_OUTPUT.append("\nGuarantee of "+(OtherAgent.id==0?"P":"Q")+"\n");
+                        LOG="";
+                        printMatrix(OtherAgent.guaranteeMatrix, LOG_OUTPUT);
+                        LOG_OUTPUT.append(LOG + " \n");
                     }
                     OtherAgent.setIsRunning(true);
                 } catch (IOException ex) {
@@ -238,15 +259,13 @@ public class Agent extends Thread {
                 }
             }
             try {
-                Thread.sleep(2000);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
                 ///Logger.getLogger(AgentOne.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
-        LOG_OUTPUT.append("\nGuarantee\n");
-        printMatrix(guaranteeMatrix, LOG_OUTPUT);
-        LOG_OUTPUT.append(LOG + " \n");
+        
         LOG = "";
         System.out.println("GoalNum: " + (GoalNum - LastCompensation + OtherAgent.LastCompensation));
 
@@ -265,33 +284,33 @@ public class Agent extends Thread {
 
         if (Goal[0] == 0) {
             if (Goal[1] == 0) {
-                if (matrix[0][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==1&&matrix[0][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[0][1] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[0][1];
                 }
-                if (matrix[1][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==0&&matrix[1][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[1][0] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[1][0];
                 }
             } else {
-                if (matrix[0][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==1&&matrix[0][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[0][0] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[0][0];
                 }
-                if (matrix[1][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==0&&matrix[1][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[1][1] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[1][1];
                 }
             }
         } else {
             if (Goal[1] == 0) {
-                if (matrix[0][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==0&&matrix[0][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[0][0] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[0][0];
                 }
-                if (matrix[1][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==1&&matrix[1][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[1][1] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[1][1];
                 }
             } else {
-                if (matrix[0][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==0&&matrix[0][1] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[0][1] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[0][1];
                 }
-                if (matrix[1][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
+                if (id==1&&matrix[1][0] < (GoalNum - LastCompensation + OtherAgent.LastCompensation)) {
                     guaranteeMatrix[1][0] = GoalNum - LastCompensation + OtherAgent.LastCompensation - matrix[1][0];
                 }
             }

@@ -153,6 +153,7 @@ public class Screen extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        jTextArea1.setText("");
         double[][] MA = {{Double.parseDouble(P0.getText()), Double.parseDouble(P1.getText())}, {Double.parseDouble(P2.getText()), Double.parseDouble(P3.getText())}};
         double[][] MB = {{Double.parseDouble(Q0.getText()), Double.parseDouble(Q1.getText())}, {Double.parseDouble(Q2.getText()), Double.parseDouble(Q3.getText())}};
 
